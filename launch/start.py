@@ -13,7 +13,7 @@ def generate_launch_description():
         name='lidar_pipeline',
         namespace='',
         package='rclcpp_components',
-        executable='component_container',
+        executable='component_container_mt',
         output='screen',
         composable_node_descriptions=[
             ComposableNode(
@@ -27,6 +27,12 @@ def generate_launch_description():
                 plugin='TopicHzNode',
                 name='topic_hz_nde',
                 parameters=[{'topic_name': '/lidar_points'}],
+                extra_arguments=[{'use_intra_process_comms': True}],
+            ),
+            ComposableNode(
+                package='tcp_tunnel',
+                plugin='TCPTunnelServer',
+                name='tcp_tunnel_server',
                 extra_arguments=[{'use_intra_process_comms': True}],
             ),
         ]
