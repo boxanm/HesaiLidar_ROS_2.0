@@ -110,6 +110,7 @@ if($ENV{ROS_VERSION} MATCHES "2")
     find_package(rosidl_default_generators REQUIRED)
     find_package(builtin_interfaces REQUIRED)
     find_package(std_msgs REQUIRED)
+    find_package(rclcpp_components REQUIRED)
     
     rosidl_generate_interfaces(${PROJECT_NAME}
       "msg/msg_ros2/UdpPacket.msg"
@@ -191,25 +192,38 @@ else(CUDA_FOUND)
   message(=============================================================)
   message("-- CUDA Not Found. CUDA Support is turned Off.")
   message(=============================================================)
-  add_executable(hesai_ros_driver_node
-                node/hesai_ros_driver_node.cc
-                src/manager/node_manager.cc
-                )
-  target_link_libraries(hesai_ros_driver_node                   
-              ${YAML_CPP_LIBRARIES}
-              ${Boost_LIBRARIES}
-              source_lib
-              container_lib
-              ptcClient_lib
-              ptcParser_lib
-              log_lib
-              # libhesai
-  )            
+  add_library(hesai_ros_driver_component SHARED
+    node/hesai_ros_driver_node.cc
+    src/driver/HesaiLidar_SDK_2.0/libhesai/Source/src/source.cc
+    src/driver/HesaiLidar_SDK_2.0/libhesai/Source/src/socket_source.cc
+    src/driver/HesaiLidar_SDK_2.0/libhesai/Source/src/pcap_source.cc
+    src/driver/HesaiLidar_SDK_2.0/libhesai/Source/src/pcap_saver.cc
+    src/driver/HesaiLidar_SDK_2.0/libhesai/Container/src/ring_2d_shared.cc
+    src/driver/HesaiLidar_SDK_2.0/libhesai/Container/src/ring_2dex.cc
+    src/driver/HesaiLidar_SDK_2.0/libhesai/PtcClient/src/ptc_client.cc
+    src/driver/HesaiLidar_SDK_2.0/libhesai/PtcClient/src/tcp_client.cc
+    src/driver/HesaiLidar_SDK_2.0/libhesai/PtcClient/src/tcp_ssl_client.cc
+    src/driver/HesaiLidar_SDK_2.0/libhesai/PtcParser/src/general_ptc_parser.cc
+    src/driver/HesaiLidar_SDK_2.0/libhesai/PtcParser/src/ptc_1_0_parser.cc
+    src/driver/HesaiLidar_SDK_2.0/libhesai/PtcParser/src/ptc_2_0_parser.cc
+    src/driver/HesaiLidar_SDK_2.0/libhesai/PtcParser/ptc_parser.cc
+    src/driver/HesaiLidar_SDK_2.0/libhesai/Logger/src/logger.cc
+    src/driver/HesaiLidar_SDK_2.0/libhesai/src/plat_utils.cc
+    src/driver/HesaiLidar_SDK_2.0/libhesai/src/auto_tick_count.cc
+  )
+  target_link_libraries(hesai_ros_driver_component
+    ${YAML_CPP_LIBRARIES}
+  )
+  rclcpp_components_register_node(
+    hesai_ros_driver_component
+    PLUGIN "SourceDriver"
+    EXECUTABLE hesai_ros_driver_node
+  )
 
 endif(CUDA_FOUND)
 
 
-  target_include_directories(hesai_ros_driver_node PRIVATE
+  target_include_directories(hesai_ros_driver_component PRIVATE
   src/driver/HesaiLidar_SDK_2.0/
   src/driver/HesaiLidar_SDK_2.0/libhesai
   src/driver/HesaiLidar_SDK_2.0/libhesai/Lidar
@@ -250,20 +264,24 @@ endif($ENV{ROS_VERSION} MATCHES "1")
 
 if($ENV{ROS_VERSION} MATCHES "2")
   find_package(ament_index_cpp REQUIRED)
-  ament_target_dependencies(hesai_ros_driver_node 
-  "ament_index_cpp"
-  "rcl_interfaces"
-  "rclcpp" 
-  "rcutils"
-  "std_msgs" 
-  "sensor_msgs" 
-  # "tf2_geometry_msgs"
+  ament_target_dependencies(hesai_ros_driver_component
+    ament_index_cpp
+    rcl_interfaces
+    rclcpp
+    rclcpp_components
+    rcutils
+    std_msgs
+    sensor_msgs
   )
-  rosidl_target_interfaces(hesai_ros_driver_node  ${PROJECT_NAME} "rosidl_typesupport_cpp")
+  rosidl_target_interfaces(hesai_ros_driver_component  ${PROJECT_NAME} "rosidl_typesupport_cpp")
 
-  install(TARGETS
-    hesai_ros_driver_node
-    DESTINATION lib/${PROJECT_NAME})
+  ament_export_targets(export_hesai_ros_driver_component)
+  install(TARGETS hesai_ros_driver_component
+          EXPORT export_hesai_ros_driver_component
+          ARCHIVE DESTINATION lib
+          LIBRARY DESTINATION lib
+          RUNTIME DESTINATION bin
+  )
 
   install(DIRECTORY
     launch
