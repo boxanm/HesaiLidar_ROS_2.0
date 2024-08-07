@@ -14,11 +14,19 @@ def generate_launch_description():
         namespace='',
         package='rclcpp_components',
         executable='component_container',
+        output='screen',
         composable_node_descriptions=[
             ComposableNode(
                 package='hesai_ros_driver',
                 plugin='SourceDriver',
                 name='hesai_ros_driver_node',
+                extra_arguments=[{'use_intra_process_comms': True}],
+            ),
+            ComposableNode(
+                package='utility_nodes',
+                plugin='TopicHzNode',
+                name='topic_hz_nde',
+                parameters=[{'topic_name': '/lidar_points'}],
                 extra_arguments=[{'use_intra_process_comms': True}],
             ),
         ]
