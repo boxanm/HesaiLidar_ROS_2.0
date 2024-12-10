@@ -1,4 +1,4 @@
 [submodule "src/driver/HesaiLidar_SDK_2.0"]
 	path = src/driver/HesaiLidar_SDK_2.0
-	url = https://github.com/boxanm/HesaiLidar_SDK_2.0.git
+	url = https://github.com/norlab-ulaval/HesaiLidar_SDK_2.0.git
 	branch = jazzy
