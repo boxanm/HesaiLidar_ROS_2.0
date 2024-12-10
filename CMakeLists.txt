@@ -1,4 +1,7 @@
 cmake_minimum_required(VERSION 3.5)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 cmake_policy(SET CMP0048 NEW)
 project(hesai_ros_driver)
 
@@ -38,7 +41,7 @@ if (CMAKE_BUILD_TYPE STREQUAL "")
   add_definitions(-O3)
 endif()
 
-if($ENV{ROS_DISTRO} STREQUAL "humble")  # the ros2 humble requires c++17
+if($ENV{ROS_DISTRO} STREQUAL "humble" OR $ENV{ROS_DISTRO} STREQUAL "jazzy")
 add_definitions(-std=c++17)
 else()
 add_definitions(-std=c++14)
@@ -82,8 +85,8 @@ if($ENV{ROS_VERSION} MATCHES "1")
   )
 
 
-  catkin_package(CATKIN_DEPENDS 
-    sensor_msgs 
+  catkin_package(CATKIN_DEPENDS
+    sensor_msgs
     roslib)
 
 endif($ENV{ROS_VERSION} MATCHES "1")
@@ -104,14 +107,14 @@ if($ENV{ROS_VERSION} MATCHES "2")
 
     find_package(ament_cmake REQUIRED)
     find_package(sensor_msgs REQUIRED)
-    find_package(std_msgs REQUIRED)  
+    find_package(std_msgs REQUIRED)
     find_package(rclcpp_action REQUIRED)
-    find_package(rosidl_typesupport_c REQUIRED) 
+    find_package(rosidl_typesupport_c REQUIRED)
     find_package(rosidl_default_generators REQUIRED)
     find_package(builtin_interfaces REQUIRED)
     find_package(std_msgs REQUIRED)
     find_package(rclcpp_components REQUIRED)
-    
+
     rosidl_generate_interfaces(${PROJECT_NAME}
       "msg/msg_ros2/UdpPacket.msg"
       "msg/msg_ros2/UdpFrame.msg"
@@ -120,8 +123,8 @@ if($ENV{ROS_VERSION} MATCHES "2")
       "msg/msg_ros2/LossPacket.msg"
       DEPENDENCIES builtin_interfaces std_msgs
     )
-    ament_export_dependencies(rosidl_default_runtime)                 
-    
+    ament_export_dependencies(rosidl_default_runtime)
+
   else(rclcpp_FOUND)
 
     message(=============================================================)
@@ -159,7 +162,7 @@ link_directories(${Boost_LIBRARY_DIRS})
 find_package(CUDA )
 
 if(CUDA_FOUND)
-  
+
   message(=============================================================)
   message("-- CUDA Found. CUDA Support is turned On.")
   message(=============================================================)
@@ -176,7 +179,7 @@ if(CUDA_FOUND)
                 )
   set(CUDA_LIBS "${CUDA_TOOLKIT_ROOT_DIR}/lib64/libcudart.so")
 
-  target_link_libraries(hesai_ros_driver_node                   
+  target_link_libraries(hesai_ros_driver_node
                 ${YAML_CPP_LIBRARIES}
                 ${Boost_LIBRARIES}
                 source_lib
@@ -248,7 +251,7 @@ endif(CUDA_FOUND)
   src/msg/rs_msg
   src/utility
   ${CMAKE_CURRENT_BINARY_DIR}
-)  
+)
 
 #Ros#
 if($ENV{ROS_VERSION} MATCHES "1")
@@ -287,10 +290,8 @@ if($ENV{ROS_VERSION} MATCHES "2")
     launch
     rviz
     DESTINATION share/${PROJECT_NAME})
-    
+
 
   ament_package()
 
 endif($ENV{ROS_VERSION} MATCHES "2")
-
-
